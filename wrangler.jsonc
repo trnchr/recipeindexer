@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // Must match your Worker's name in the Cloudflare dashboard
+  "name": "recipeindexer",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-25",
+
+  // Your React site (built by Vite into /dist)
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
+  // Daily ping to keep Supabase from pausing: 15:00 UTC = 7am Pacific
+  "triggers": {
+    "crons": ["0 15 * * *"]
+  },
+
+  // Public values only. Never put the Supabase secret key here.
+  "vars": {
+    "SUPABASE_URL": "https://nbrxfrlzfqthcknkaunr.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_w5RAT97dCO3p-LHRHrsd6A_Czj_yh8Q"
+  },
+
+  // Lets you see the ping results in the Cloudflare dashboard logs
+  "observability": {
+    "enabled": true
+  }
+}
