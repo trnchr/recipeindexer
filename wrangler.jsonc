@@ -5,11 +5,15 @@
   "main": "worker/index.js",
   "compatibility_date": "2026-11-25",
 
-  // Your React site (built by Vite into /dist)
+  // Your React site. React Router pre-builds each page into dist/client.
   "assets": {
-    "directory": "./dist",
+    "directory": "./dist/client",
     "binding": "ASSETS",
-    "not_found_handling": "single-page-application"
+    // Pages live at addresses without a trailing slash (/privacy, not /privacy/).
+    "html_handling": "drop-trailing-slash",
+    // Addresses that don't match a file are handed to worker/index.js, which
+    // shows the "page not found" page with a proper 404 status.
+    "not_found_handling": "none"
   },
 
   // Daily ping to keep Supabase from pausing: 15:00 UTC = 7am Pacific

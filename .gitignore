@@ -26,3 +26,13 @@ dist-ssr
 .env.*
 .dev.vars
 .wrangler
+# Personal Claude Code settings for this computer (never commit)
+.claude/settings.local.json
+
+# Impeccable design tool: kept on this computer only, never on GitHub
+.impeccable/
+.claude/skills/impeccable/
+.claude/agents/impeccable-*.md
+
+# Files React Router generates on every run
+.react-router/

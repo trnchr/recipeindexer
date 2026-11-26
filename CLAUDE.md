@@ -6,7 +6,8 @@ The owner is new to web development. Explain changes in plain language.
 
 ## Stack
 
-- **Frontend:** React + Vite (JavaScript, not TypeScript), in `src/`
+- **Frontend:** React + Vite (JavaScript, not TypeScript), in `src/`, using React Router in framework mode with `ssr: false`. Every page in `prerender` (`react-router.config.js`) is built into a finished HTML file, so public pages are readable by search engines.
+- **Pages:** listed in `src/routes.js`, one file per page in `src/routes/`. Public pages: `/`, `/how-it-works`, `/privacy`, `/terms`. `/library` is private (signed in, `noindex`, blocked in `robots.txt`). A new public page must be added to `src/routes.js`, to `prerender` in `react-router.config.js`, and to `PUBLIC_PAGES` in `src/routes/sitemap.js`, and gets its title and description from `pageMeta()` in `src/lib/site.js`.
 - **Hosting:** Cloudflare Workers with static assets, configured in `wrangler.jsonc`
 - **Worker code:** `worker/index.js` serves the built site and runs a daily cron that pings Supabase so the free project doesn't pause. Keep that cron working.
 - **Database + auth:** Supabase (Postgres) with Google sign-in through Supabase Auth
@@ -15,14 +16,17 @@ The owner is new to web development. Explain changes in plain language.
 ## Commands
 
 - `npm run dev`: local site at http://localhost:5173
-- `npm run build`: builds the site into `dist/`
+- `npm run build`: builds the site into `dist/client`, then `scripts/csp-hashes.js` adds each page's script fingerprints (needed by the security headers)
+- `npm run preview`: builds, then runs the real Cloudflare setup at http://localhost:8787
 - `npx wrangler dev --test-scheduled`: runs the Worker locally at http://localhost:8787 (run `npm run build` first); `curl.exe http://localhost:8787/__scheduled` triggers the cron
 
 ## Security rules (never break these)
 
 - Row Level Security (RLS) must be ON for every table, with policies that limit each user to their own rows using `auth.uid()`. Never create a table without RLS and policies in the same step.
 - Only the Supabase **publishable key** (`sb_publishable_...`) and project URL may appear in frontend code or `wrangler.jsonc`. The **secret key** (`sb_secret_...`) must never be in frontend code, `wrangler.jsonc`, or any committed file. If server code ever needs it, it goes in `.dev.vars` locally and in Cloudflare secrets in production.
-- Frontend config uses `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from `.env.local` (git-ignored). The same values must be added as build variables in the Cloudflare dashboard. Tell the owner when that is needed.
+- Frontend config uses `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`, and `VITE_SITE_URL` (the live site address, for canonical links and the sitemap) from `.env.local` (git-ignored). The same values must be added as build variables in the Cloudflare dashboard. Tell the owner when that is needed.
+- `public/_headers` sets the security headers, including a Content-Security-Policy. Any new outside service the browser talks to (images, APIs) must be added there. Don't remove `scripts/csp-hashes.js` from the build.
+- Imported recipes are other sites' content and stay private forever. Never create public pages for recipes.
 - Never commit `.env`, `.env.*`, `.dev.vars`, or `.wrangler/`.
 - Recipe URL import must fetch pages from the Worker, never from the browser. Validate that the URL is http/https and don't fetch private or local addresses.
 
@@ -41,7 +45,7 @@ The owner is new to web development. Explain changes in plain language.
 ## Hosting notes
 
 - `wrangler.jsonc` is the source of truth for Worker settings; don't tell the owner to change them in the Cloudflare dashboard.
-- `assets.not_found_handling` is `single-page-application`. Any future Worker API routes (for example `/api/*`) must be listed in `assets.run_worker_first`, or the React app will be served instead.
+- Built files are served from `dist/client` with `html_handling: drop-trailing-slash` and `not_found_handling: none`. Any address that doesn't match a file goes to `worker/index.js`, which returns the app shell with a 404 status (React Router then shows the not-found page). Future Worker API routes (for example `/api/*`) must be handled in `worker/index.js` before that 404 fallback.
 
 ## How to work
 
@@ -50,3 +54,4 @@ The owner is new to web development. Explain changes in plain language.
 - Ask before installing new npm packages, and say why each one is needed.
 - Don't run `git commit` or `git push`. The owner commits and pushes after testing.
 - Keep code simple and readable over clever.
+- When the owner makes a decision (design, features, security, wording), add a short dated entry at the top of `docs/DECISIONS.md` in the same change: what was decided, why, and anything still open. Never put personal details (emails, names, local folder paths) in it, since it is committed to GitHub.
