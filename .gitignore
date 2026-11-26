@@ -36,3 +36,7 @@ dist-ssr
 
 # Files React Router generates on every run
 .react-router/
+
+# Obsidian note app settings (if the docs are opened as a vault): personal, never on GitHub
+.obsidian/
+.trash/

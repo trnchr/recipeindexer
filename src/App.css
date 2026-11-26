@@ -766,6 +766,125 @@
   margin-top: calc(var(--space-sm) * -1);
 }
 
+/* "Saved ..." message above the recipe list. */
+.panel > .status-note {
+  margin-bottom: var(--space-md);
+}
+
+/* The main green button, used as a real button (e.g. "Save recipe"). */
+button.btn-primary {
+  border: 0;
+  cursor: pointer;
+}
+
+button.btn-primary:disabled {
+  background: var(--deep-herb);
+  cursor: progress;
+}
+
+/* ---------- Add a recipe form ---------- */
+
+.recipe-form {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.field label {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--deep-herb);
+}
+
+.field-optional {
+  font-weight: 400;
+  color: var(--sage-muted);
+}
+
+.field-hint {
+  font-size: 0.9375rem;
+  color: var(--sage-muted);
+}
+
+/* 16px text keeps phones from zooming in when a box is tapped. */
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--herb-rule);
+  border-radius: var(--radius-sm);
+  background: var(--ticket-cream);
+  color: var(--deep-herb);
+  font: inherit;
+  font-size: 1rem;
+  transition: border-color 150ms var(--ease-out);
+}
+
+.field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.field input:hover,
+.field textarea:hover,
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--ticket-green);
+}
+
+.field input::placeholder {
+  color: var(--sage-muted);
+  opacity: 0.75;
+}
+
+/* Servings and total time side by side on wider screens. */
+.field-row {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 560px) {
+  .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Live list of search keywords under the ingredients box. */
+.keyword-preview {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip--small {
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.9375rem;
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.form-actions .btn-secondary {
+  min-height: 52px;
+  padding: 0 24px;
+}
+
 /* ==========================================================================
    Helpers
    ========================================================================== */
