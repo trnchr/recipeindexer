@@ -8,6 +8,18 @@ Format: date, what was decided, why, and anything still open.
 
 ---
 
+## 2026-11-25: Next steps after the first live deploy
+
+- **Decided:**
+  - **Privacy and terms promises are confirmed as written:** a user's data is deleted within 30 days of their request, and users get notice before the site shuts down.
+  - **Keep-alive fix:** the `keep_alive` table gets a read-only public policy so the daily ping works (`supabase/migrations/001_keep_alive_access.sql`). The table holds no user data, so this is the one exception to the "own rows only" rule.
+  - **Set aside for now (not doing):**
+    - adding a contact email to the privacy and terms pages
+    - adding an "early testing" note by the sign-in button (from the 2026-11-25 critique)
+  - **Deferred:** saving recipes (the recipes table, typing in a recipe, importing from a link) will be built in a later session.
+- **Why:** Keep the free database from pausing first. The owner chose to leave the contact email and early-testing note out for now.
+- **Open:** Without a contact email, the privacy page's "email us to delete your data" step has no address yet.
+
 ## 2026-11-25: Conversation logs are backed up outside the project
 
 - **Decided:** After each Claude reply, the conversation log is copied to a private folder outside the project and saved as a version there. That folder is never pushed to GitHub.
@@ -64,15 +76,13 @@ Format: date, what was decided, why, and anything still open.
   - Sign-in uses the safer PKCE flow.
   - Google is the only sign-in method.
 - **Why:** The owner asked for a check for data or personal-information leaks. None were found, and these headers harden the site.
-- **Open:** The daily keep-alive ping gets "permission denied" from Supabase. A small SQL fix was offered but not yet applied.
+- **Open:** The daily keep-alive ping gets "permission denied" from Supabase. Fix: `supabase/migrations/001_keep_alive_access.sql` (see the entry above).
 
 ## 2026-11-25: Privacy and terms pages
 
 - **Decided:** Plain-language privacy and terms pages exist.
-- **Open (owner to confirm):**
-  - A contact email (`CONTACT_EMAIL` in `src/lib/site.js` is still empty).
-  - The promise to delete a user's data within 30 days of a request.
-  - The promise to give notice before shutting the site down.
+- **Open:** A contact email (`CONTACT_EMAIL` in `src/lib/site.js` is still empty); set aside for now.
+- **Confirmed later the same day:** the 30-day deletion promise and the shutdown-notice promise.
 
 ## 2026-11-25: Sign-in with Google through Supabase
 
@@ -87,4 +97,4 @@ Format: date, what was decided, why, and anything still open.
 
 ## Next up
 
-- Saving recipes (the next feature to build).
+- Saving recipes (the next feature to build, planned for a later session).
