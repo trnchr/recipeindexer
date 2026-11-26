@@ -28,6 +28,8 @@ dist-ssr
 .wrangler
 # Personal Claude Code settings for this computer (never commit)
 .claude/settings.local.json
+# Personal guardrail hook script (switched on in settings.local.json)
+.claude/hooks/
 
 # Impeccable design tool: kept on this computer only, never on GitHub
 .impeccable/
