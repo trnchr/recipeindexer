@@ -8,6 +8,12 @@ Format: date, what was decided, why, and anything still open.
 
 ---
 
+## 2026-11-26: Recipes table design
+
+- **Decided:** Saving recipes is built in four steps: (1) the recipes table, (2) typing in a recipe, (3) importing from a link, (4) search by ingredient. Step 1 adds the `recipes` table (`supabase/migrations/002_recipes.sql`). Each recipe has a title, ingredient lines as written, a search keyword list, steps, a source link, a photo link, and three optional extras: servings, total time, and the user's own notes. Row Level Security limits each user to their own recipes, and signed-out visitors can't read any.
+- **Why:** The owner chose all three extras. Recipe sites usually provide servings and total time, so imports fill them in for free, and notes are useful after cooking a recipe.
+- **Open:** How keywords are built from ingredient lines (for example, "thighs" becomes `thigh`) will be decided in step 2.
+
 ## 2026-11-25: Next steps after the first live deploy
 
 - **Decided:**
