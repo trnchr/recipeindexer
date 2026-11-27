@@ -8,8 +8,10 @@ export default [
   route('privacy', 'routes/privacy.jsx'),
   route('terms', 'routes/terms.jsx'),
 
-  // Private page: only useful when signed in, hidden from search engines
+  // Private pages: only useful when signed in, hidden from search engines
   route('library', 'routes/library.jsx'),
+  route('library/new', 'routes/new-recipe.jsx'), // the "Add a recipe" page
+  route('library/:id', 'routes/recipe.jsx'), // one recipe, e.g. /library/3f2b8c1e-...
 
   // Files for search engines
   route('robots.txt', 'routes/robots.js'),

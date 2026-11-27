@@ -7,6 +7,7 @@
     "dev": "react-router dev",
     "build": "react-router build && node scripts/csp-hashes.js",
     "lint": "oxlint",
+    "test": "node --test worker/import.test.js",
     "preview": "npm run build && wrangler dev"
   },
   "dependencies": {

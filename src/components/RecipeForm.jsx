@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { makeKeywords } from '../lib/keywords.js'
-import { addRecipe, toLines } from '../lib/recipes.js'
+import { addRecipe, recipeToForm, siteName, toLines, updateRecipe } from '../lib/recipes.js'
 
 const EMPTY = {
   title: '',
@@ -12,10 +12,17 @@ const EMPTY = {
   sourceUrl: '',
 }
 
-// The "Add a recipe" form. Calls onSaved(recipe) after a successful save,
-// and onCancel() when the user closes it without saving.
-export default function RecipeForm({ onSaved, onCancel }) {
-  const [form, setForm] = useState(EMPTY)
+// The recipe form, used both to add a recipe and to edit one.
+// Without `recipe` it starts empty and adds a new recipe. With `recipe`
+// (a saved recipe) it starts filled in and saves changes to it.
+// Calls onSaved(savedRecipe) after a successful save, and onCancel() when
+// the user closes it without saving.
+// `startWith` fills in some boxes of a new recipe (e.g. { sourceUrl } after
+// an import couldn't read the page). `autoFocusTitle` puts the cursor in
+// the Title box when the form appears.
+export default function RecipeForm({ recipe, startWith, autoFocusTitle = true, onSaved, onCancel }) {
+  const editing = Boolean(recipe)
+  const [form, setForm] = useState(() => (editing ? recipeToForm(recipe) : { ...EMPTY, ...startWith }))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
 
@@ -29,13 +36,17 @@ export default function RecipeForm({ onSaved, onCancel }) {
     setSaving(true)
     setError(null)
     try {
-      const recipe = await addRecipe(form)
-      onSaved(recipe)
+      const saved = editing ? await updateRecipe(recipe, form) : await addRecipe(form)
+      onSaved(saved)
     } catch (err) {
       setError(err.message)
       setSaving(false)
     }
   }
+
+  // An imported recipe's source link credits the original site, so it's
+  // shown but can't be changed.
+  const sourceLocked = editing && recipe.imported === true
 
   // Live preview of the search keywords, rebuilt on every keystroke.
   const keywords = makeKeywords(toLines(form.ingredients))
@@ -52,7 +63,7 @@ export default function RecipeForm({ onSaved, onCancel }) {
           onChange={update}
           maxLength={200}
           required
-          autoFocus
+          autoFocus={autoFocusTitle}
         />
       </div>
 
@@ -150,21 +161,38 @@ export default function RecipeForm({ onSaved, onCancel }) {
         />
       </div>
 
-      <div className="field">
-        <label htmlFor="recipe-source">
-          Source link <span className="field-optional">(optional)</span>
-        </label>
-        <input
-          id="recipe-source"
-          name="sourceUrl"
-          type="url"
-          inputMode="url"
-          placeholder="https://"
-          value={form.sourceUrl}
-          onChange={update}
-          maxLength={2000}
-        />
-      </div>
+      {sourceLocked ? (
+        <div className="field">
+          <label htmlFor="recipe-source">Source link</label>
+          <input
+            id="recipe-source"
+            name="sourceUrl"
+            type="url"
+            value={form.sourceUrl}
+            readOnly
+            aria-describedby="source-locked-note"
+          />
+          <p className="field-hint" id="source-locked-note">
+            The link can’t be changed as it was imported directly from {siteName(form.sourceUrl) ?? 'its website'}.
+          </p>
+        </div>
+      ) : (
+        <div className="field">
+          <label htmlFor="recipe-source">
+            Source link <span className="field-optional">(optional)</span>
+          </label>
+          <input
+            id="recipe-source"
+            name="sourceUrl"
+            type="url"
+            inputMode="url"
+            placeholder="https://"
+            value={form.sourceUrl}
+            onChange={update}
+            maxLength={2000}
+          />
+        </div>
+      )}
 
       {error && (
         <p className="form-error" role="alert">
@@ -174,7 +202,7 @@ export default function RecipeForm({ onSaved, onCancel }) {
 
       <div className="form-actions">
         <button className="btn-primary" type="submit" disabled={saving}>
-          {saving ? 'Saving…' : 'Save recipe'}
+          {saving ? 'Saving…' : editing ? 'Save changes' : 'Save recipe'}
         </button>
         <button className="btn-secondary" type="button" onClick={onCancel} disabled={saving}>
           Cancel

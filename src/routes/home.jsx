@@ -92,7 +92,7 @@ export default function Home() {
               </span>
             ))}
             <span className="search-sample__hint" aria-hidden="true">
-              Add an ingredient…
+              Search by ingredient…
             </span>
           </div>
 

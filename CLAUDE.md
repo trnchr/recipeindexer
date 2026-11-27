@@ -17,7 +17,8 @@ The owner is new to web development. Explain changes in plain language.
 
 - `npm run dev`: local site at http://localhost:5173
 - `npm run build`: builds the site into `dist/client`, then `scripts/csp-hashes.js` adds each page's script fingerprints (needed by the security headers)
-- `npm run preview`: builds, then runs the real Cloudflare setup at http://localhost:8787
+- `npm run preview`: builds, then runs the real Cloudflare setup at http://localhost:8787 (needed to try recipe import, since `npm run dev` doesn't run the Worker). Open it as `localhost`, not `127.0.0.1`. Signing in there only works if `http://localhost:8787/**` is in Supabase → Authentication → URL Configuration → Redirect URLs; otherwise Google sign-in returns to the live site.
+- `npm test`: runs the recipe import tests in `worker/import.test.js` (Node's built-in test runner)
 - `npx wrangler dev --test-scheduled`: runs the Worker locally at http://localhost:8787 (run `npm run build` first); `curl.exe http://localhost:8787/__scheduled` triggers the cron
 
 ## Security rules (never break these)

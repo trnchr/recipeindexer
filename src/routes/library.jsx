@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
+import { Link, useLocation, useSearchParams } from 'react-router'
 import GoogleButton from '../components/GoogleButton.jsx'
-import RecipeForm from '../components/RecipeForm.jsx'
+import IngredientSearch from '../components/IngredientSearch.jsx'
 import { useSession } from '../lib/auth.js'
-import { listRecipes } from '../lib/recipes.js'
+import { listRecipes, sourceLabel } from '../lib/recipes.js'
+import { searchRecipes, toSearchWords } from '../lib/search.js'
 import { pageMeta } from '../lib/site.js'
 
 // Private page: tell search engines not to list it.
@@ -15,7 +17,7 @@ export function meta() {
 }
 
 // Features that are planned but not built yet, listed like a menu.
-const COMING_UP = ['Open, edit, or delete a recipe', 'Paste a recipe link', 'Search by ingredients']
+const COMING_UP = ['Recipe photos']
 
 function SignedOut() {
   const [error, setError] = useState(null)
@@ -46,7 +48,20 @@ function countLabel(recipes) {
   return recipes.length === 1 ? '1 recipe' : `${recipes.length} recipes`
 }
 
+// How long to wait after the last keystroke before searching, in milliseconds.
+const SEARCH_DELAY = 250
+
+// "3 recipes match both", "1 recipe matches “chick”", "No recipes match all 3".
+function resultLabel(count, words) {
+  const subject = count === 0 ? 'No recipes' : count === 1 ? '1 recipe' : `${count} recipes`
+  const verb = count === 1 ? 'matches' : 'match'
+  const what = words.length === 1 ? `“${words[0]}”` : words.length === 2 ? 'both' : `all ${words.length}`
+  return `${subject} ${verb} ${what}`
+}
+
 function RecipeList({ recipes }) {
+  // Remember the current search, so the recipe page's back link returns to it.
+  const { search } = useLocation()
   return (
     <ul className="menu">
       {recipes.map((recipe) => {
@@ -58,8 +73,16 @@ function RecipeList({ recipes }) {
 
         return (
           <li className="menu-item" key={recipe.id}>
-            <p className="menu-name">{recipe.title}</p>
-            {details.length > 0 && <p className="menu-detail">{details.join(' · ')}</p>}
+            <p className="menu-name">
+              <Link className="recipe-link" to={`/library/${recipe.id}`} state={{ librarySearch: search }}>
+                {recipe.title}
+              </Link>
+            </p>
+            {/* Servings and time on the left, the source bubble on the right. */}
+            <div className="menu-detail menu-detail--split">
+              {details.length > 0 && <p>{details.join(' · ')}</p>}
+              <p className="source-tag">{sourceLabel(recipe)}</p>
+            </div>
           </li>
         )
       })}
@@ -71,8 +94,39 @@ function SignedIn({ session }) {
   // undefined while loading, then the list of recipes (newest first).
   const [recipes, setRecipes] = useState(undefined)
   const [loadError, setLoadError] = useState(null)
-  const [adding, setAdding] = useState(false)
-  const [savedTitle, setSavedTitle] = useState(null)
+  // A short message at the top of the list: "Saved “...”." when arriving
+  // from the Add a recipe page, or "Deleted “...”." from a deleted recipe's page.
+  const { state, search } = useLocation()
+  const [listNote] = useState(() => {
+    if (state?.savedTitle) return `Saved “${state.savedTitle}”.`
+    if (state?.deletedTitle) return `Deleted “${state.deletedTitle}”.`
+    return null
+  })
+
+  // Search: the chips plus whatever is being typed in the box. The list
+  // filters as you type, a moment after you stop (SEARCH_DELAY).
+  // The words are also kept in the page address (/library?with=chick+cumin),
+  // so they come back as chips after a refresh or a visit to a recipe.
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [chips, setChips] = useState(() => toSearchWords(searchParams.get('with') ?? ''))
+  const [typed, setTyped] = useState('')
+  const liveKey = [...new Set([...chips, ...toSearchWords(typed)])].join(' ')
+  // The words the shown results are for. Catches up with liveKey after the pause.
+  const [wordsKey, setWordsKey] = useState(liveKey)
+  const words = wordsKey === '' ? [] : wordsKey.split(' ')
+  // undefined until a search has finished, then the matching recipes.
+  const [results, setResults] = useState(undefined)
+  const [searchError, setSearchError] = useState(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setWordsKey(liveKey), SEARCH_DELAY)
+    return () => clearTimeout(timer)
+  }, [liveKey])
+
+  useEffect(() => {
+    setSearchParams(wordsKey === '' ? {} : { with: wordsKey }, { replace: true })
+    // Runs only when the words change.
+  }, [wordsKey])
 
   const userId = session.user.id
   useEffect(() => {
@@ -85,16 +139,21 @@ function SignedIn({ session }) {
     }
   }, [userId])
 
-  function handleSaved(recipe) {
-    setRecipes([recipe, ...(recipes ?? [])])
-    setSavedTitle(recipe.title)
-    setAdding(false)
-  }
-
-  function startAdding() {
-    setSavedTitle(null)
-    setAdding(true)
-  }
+  // Runs the search again whenever the words change.
+  useEffect(() => {
+    setSearchError(null)
+    if (wordsKey === '') {
+      setResults(undefined)
+      return
+    }
+    let current = true
+    searchRecipes(wordsKey.split(' '))
+      .then((found) => current && setResults(found))
+      .catch((err) => current && setSearchError(err.message))
+    return () => {
+      current = false
+    }
+  }, [wordsKey, userId])
 
   const firstName = session.user.user_metadata?.full_name?.split(' ')[0]
 
@@ -110,7 +169,37 @@ function SignedIn({ session }) {
   } else if (recipes.length === 0) {
     libraryBody = <p className="lede">Your library is empty. Add your first recipe to get started.</p>
   } else {
-    libraryBody = <RecipeList recipes={recipes} />
+    let listBody
+    if (words.length === 0) {
+      listBody = <RecipeList recipes={recipes} />
+    } else if (searchError) {
+      listBody = (
+        <p className="form-error" role="alert">
+          {searchError}
+        </p>
+      )
+    } else if (results === undefined) {
+      listBody = <p className="lede">Searching…</p>
+    } else {
+      listBody = (
+        <>
+          <p className="count-label search-count" role="status">
+            {resultLabel(results.length, words)}
+          </p>
+          {results.length > 0 ? (
+            <RecipeList recipes={results} />
+          ) : (
+            <p className="lede">Try removing an ingredient, or typing less of a word (“chick” finds chicken).</p>
+          )}
+        </>
+      )
+    }
+    libraryBody = (
+      <>
+        <IngredientSearch words={chips} onWordsChange={setChips} text={typed} onTextChange={setTyped} />
+        {listBody}
+      </>
+    )
   }
 
   return (
@@ -118,36 +207,27 @@ function SignedIn({ session }) {
       <header className="page-head">
         <h1 className="headline headline--display">{firstName ? `${firstName}’s recipes` : 'Your recipes'}</h1>
         <p className="count-label">{countLabel(recipes)}</p>
-        {!adding && (
-          <p>
-            <button className="btn-primary" type="button" onClick={startAdding}>
-              Add a recipe
-            </button>
-          </p>
-        )}
+        <p>
+          {/* Its own page (/library/new), so "My recipes" and the browser's
+              Back button both return here. Passes the search along. */}
+          <Link className="btn-primary" to="/library/new" state={{ librarySearch: search }}>
+            Add a recipe
+          </Link>
+        </p>
       </header>
 
       <div className="library-grid">
-        {adding ? (
-          <section className="panel" aria-labelledby="add-title">
-            <h2 className="section-label" id="add-title">
-              Add a recipe
-            </h2>
-            <RecipeForm onSaved={handleSaved} onCancel={() => setAdding(false)} />
-          </section>
-        ) : (
-          <section className="panel" aria-labelledby="library-title">
-            <h2 className="section-label" id="library-title">
-              Your library
-            </h2>
-            {savedTitle && (
-              <p className="status-note" role="status">
-                Saved “{savedTitle}”.
-              </p>
-            )}
-            {libraryBody}
-          </section>
-        )}
+        <section className="panel" aria-labelledby="library-title">
+          <h2 className="section-label" id="library-title">
+            Your library
+          </h2>
+          {listNote && (
+            <p className="status-note" role="status">
+              {listNote}
+            </p>
+          )}
+          {libraryBody}
+        </section>
 
         <section className="panel" aria-labelledby="coming-title">
           <h2 className="section-label" id="coming-title">

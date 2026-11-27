@@ -300,15 +300,40 @@ None on arrival. Hover color changes take 150ms with a quick-start, soft-landing
 - The page's Display-size title, then optional lines 16px below it (a "Last updated" date in Meta / Sage Muted, or a Toasted Amber count like "0 RECIPES"). One section gap below.
 
 ### Ingredient Chips
-- Mint Wash fill, Deep Herb text at 1rem, 500 weight, 6px corners, 36px tall, 12px side padding. Today they appear only in the example search, so they have no remove (×) button yet.
+- Mint Wash fill, Deep Herb text at 1rem, 500 weight, 6px corners, 36px tall, 12px side padding. On the home page (example search) they have no remove button; in the library search they get an × (see Ingredient Search).
 
 ### Example Search Box
-- On the home page the example search is a full-width panel. The box is at least 60px tall with a 1.5px Ticket Green border and 6px corners around a wrapping row of chips, followed by a Sage Muted "Add an ingredient…" hint. It's a picture of the search, not a working input, so it has no focus or typing state. 40px below it, a Toasted Amber count ("6 RECIPES HAVE BOTH"), then the result rows, in two columns from 900px wide. The sample uses chicken + miso recipes and is labeled as sample.
+- On the home page the example search is a full-width panel. The box is at least 60px tall with a 1.5px Ticket Green border and 6px corners around a wrapping row of chips, followed by a Sage Muted "Search by ingredient…" hint. It's a picture of the search, not a working input, so it has no focus or typing state. 40px below it, a Toasted Amber count ("6 RECIPES HAVE BOTH"), then the result rows, in two columns from 900px wide. The sample uses chicken + miso recipes and is labeled as sample.
+
+### Add a Recipe Page (/library/new)
+- Its own page: the "← Back to your recipes" link, an "Add a recipe" Display heading, then one panel (at most 48rem wide) holding the import box, the divider, and the recipe form. The library's green **Add a recipe** button links here.
+
+### Import From a Link (on the Add a recipe page)
+- At the top of the panel: a "Paste a recipe link" field (the standard form field) with the green **Import** button beside it (wrapping below on phones), and a Sage Muted hint that it saves right away. While working the button reads "Importing…".
+- Then an "OR TYPE IT IN" divider (Toasted Amber label between two 1px Herb Rule lines, 40px above, 24px below) and the normal recipe form.
+- **Can't retrieve:** a box with a 1.5px Toasted Amber border (6px corners, 12px 16px padding): bold "We couldn’t get the recipe from <site>." then "You’ll need to enter this one by hand.", the reason in Meta / Sage Muted, and a Secondary **Enter it by hand** button that fills the form's Source link and moves to the Title.
+- **Already saved:** a Mint Wash status note linking to the existing recipe. **Bad link:** the standard error text.
+- After a successful import the recipe page opens with a status note: "Imported and saved. Check it over, and use Edit to fix anything."
+
+### Ingredient Search (library)
+- At the top of the "Your library" panel: the same box as the example search (60px min height, 1.5px Ticket Green border, 6px corners, 10px 12px padding), with a real text box after the chips. The list filters as you type (after a 250ms pause); A space, comma, or Enter turns the typed word into a chip; Backspace in the empty box puts the last chip back as text to edit. The placeholder (Sage Muted) reads "Search by ingredient…", the same words as the home page's example search. Keyboard focus in the text box puts the Toasted Amber focus ring around the whole box.
+- Chips are Ingredient Chips with an × button (28px, 6px corners, Herb Rule fill on hover) labeled "Remove <word>" for screen readers.
+- 24px below, a Toasted Amber count ("3 RECIPES MATCH BOTH", "1 RECIPE MATCHES “CHICK”", "NO RECIPES MATCH ALL 3"), then the matching rows. No matches shows a Body-size tip instead of rows.
 
 ### List Row
 - **Structure:** name on the left, a 2px dotted Herb Rule leader stretching across, and the time (Deep Herb, 500, even-width digits) or a Toasted Amber "SOON" tag on the right. When a long name wraps, the leader and time line up with its last line. An optional detail line sits 4px below in Meta / Sage Muted, with matched ingredients on a Mint Wash patch.
+- **Source tag:** recipe rows end their detail line with the source ("Source: seriouseats.com" or "Source: manual") on the right, in an outlined pill: 1.5px Herb Rule border, Deep Herb text at 0.875rem, 500, 2px 10px padding, no fill and no hover (it isn't a button). Long site names are cut off with "…". On narrow screens it drops below the servings and time, still on the right. Every detail uses "Label: value" wording.
 - **Name styles:** recipe names in Title, Ticket Green. A quieter version (1.0625rem, 500, Deep Herb) lists steps and planned features, with or without a leader.
 - **Separation:** no box around each row. A 1px Herb Rule line under every row except the last, 16px of space above and below.
+
+### Recipe Page
+- **Head:** a "← Back to your recipes" text link (500 weight, standard link style, no outline), repeated 40px below the panels at the end of the page so there's no need to scroll back up, the recipe name in Display type, then the detail line: servings and time on the left, the source tag on the right. Here the tag is a link to the original recipe (new tab) with a 1.5px Ticket Green border and a Mint Wash hover, like other clickable outlines; "Source: manual" keeps the plain Herb Rule outline.
+- **Body:** from 900px, two columns (1fr and 2fr) with a 40px gap: an Ingredients panel on the left; a Steps panel and, if there are notes, a Notes panel stacked on the right. Below 900px they stack, ingredients first.
+- **Lists:** Body size (1.0625rem). Ingredients as written, with Toasted Amber disc bullets, 8px apart. Steps numbered with bold Toasted Amber numbers, 16px apart. Notes keep the line breaks as typed.
+- **Edit / Delete:** two Secondary buttons (44px) under the detail line, 8px apart. Edit swaps the page for the recipe form, filled in, under an "Edit recipe" heading; "Save changes" returns to the recipe with a Mint Wash status note ("Saved your changes."). 
+- **Locked source link (imported recipes):** in the edit form, the Source link box is read-only: dashed Herb Rule border, Mint Wash fill, Sage Muted text, no hover change, and no "(optional)" label. Under it, a field hint: "The link can’t be changed as it was imported directly from <site>."
+- **Confirm delete:** Delete swaps the two buttons for a box (1.5px Toasted Amber border, 6px corners, 12px 16px padding): "Delete “<name>”? This can’t be undone." with **Delete** (Secondary with Toasted Amber border and text, 700, Pink Wash hover) and **Keep** (plain Secondary, focused first). After deleting, the library shows "Deleted “<name>”." in a status note.
+- **In the library list,** each recipe name links here: it keeps the Ticket Green title look and turns Deep Herb with an underline on hover.
 
 ### On This Page List (text pages)
 - A Toasted Amber "ON THIS PAGE" label, then links in Meta size (Deep Herb, no underline until hovered, 6px padding above and below each). Sticky in a 220px left column from 900px; a bordered box with 12px corners above the text on smaller screens.
@@ -331,7 +356,7 @@ None on arrival. Hover color changes take 150ms with a quick-start, soft-landing
 - **Error:** Meta size at 500 weight in Toasted Amber, announced to screen readers, right under the action that failed.
 
 ### Planned, not built yet
-These come from the earlier seed and the owner's references and are not in the code; treat them as direction only: category pills (cream pills, Toasted Amber fill when selected), a real ingredient search field with removable chips, source badges after a recipe name ("IMPORTED", "TYPED IN" in Toasted Amber), 56px square recipe thumbnails with 6px corners, a Mint Wash hover on clickable rows, and a pager. Document them properly once they exist.
+These come from the earlier seed and the owner's references and are not in the code; treat them as direction only: category pills (cream pills, Toasted Amber fill when selected) 56px square recipe thumbnails with 6px corners, a Mint Wash hover on clickable rows, and a pager. Document them properly once they exist.
 
 ## Do's and Don'ts
 
